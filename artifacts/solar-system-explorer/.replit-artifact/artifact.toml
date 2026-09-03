@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Интерактивная Солнечная система"
+description = "Образовательный веб‑эксплорер Солнечной системы с анимированными орбитами, масштабированием, управлением скоростью и подробными интерактивными справками о Солнце и планетах."
+version = "1.0.0"
+id = "artifacts/solar-system-explorer"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23936
+
+[services.development]
+run = "pnpm --filter @workspace/solar-system-explorer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/solar-system-explorer", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/solar-system-explorer/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23936"
+BASE_PATH = "/"

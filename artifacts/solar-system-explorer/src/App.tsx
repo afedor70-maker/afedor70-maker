@@ -4,7 +4,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useLocation, Route, Switch, Router as WouterRouter } from 'wouter';
-import { Activity, BookOpen, CircleHelp, Gauge, Info, Minus, Move, Pause, Play, Plus, RotateCcw, Sparkles, Sun, Telescope, Zap } from 'lucide-react';
+import { Activity, BookOpen, CircleHelp, Gauge, Info, Minus, Move, Pause, Play, Plus, RotateCcw, Sparkles, Telescope, X, Zap } from 'lucide-react';
 import NotFound from '@/pages/not-found';
 
 type Planet = {
@@ -45,11 +45,11 @@ function formatDay(day: number) {
   return years ? `${years} г ${String(days).padStart(3, '0')} д` : `${days} дней`;
 }
 
-function PlanetVisual({ planet, selected, onSelect, x, y, center }: { planet: Planet; selected: boolean; onSelect: () => void; x: number; y: number; center: { x: number; y: number } }) {
+function PlanetVisual({ planet, selected, onSelect, onInspect, onHover, onHoverEnd, x, y, center }: { planet: Planet; selected: boolean; onSelect: () => void; onInspect: () => void; onHover: () => void; onHoverEnd: () => void; x: number; y: number; center: { x: number; y: number } }) {
   const r = planet.radius;
   const surface = surfaceColors[planet.id];
   return (
-    <g className={`planet-hit ${selected ? 'selected' : ''}`} tabIndex={0} role="button" aria-label={`Выбрать ${planet.name}`} onClick={onSelect} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(); }}>
+    <g className={`planet-hit ${selected ? 'selected' : ''}`} tabIndex={0} role="button" aria-label={`Открыть ${planet.name} для изучения`} onMouseEnter={onHover} onMouseLeave={onHoverEnd} onFocus={onHover} onBlur={onHoverEnd} onClick={() => { onSelect(); onInspect(); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onSelect(); onInspect(); } }}>
       <circle className="planet-halo" cx={x} cy={y} r={r + 9} />
       <circle className="planet-atmosphere" cx={x - r * .16} cy={y - r * .16} r={r + 2} fill={planet.glow} />
       {planet.id === 'saturn' && <ellipse className="saturn-ring-back" cx={x} cy={y + 1} rx={r * 2.05} ry={r * .68} fill="none" stroke="#8b6f55" strokeWidth={Math.max(2.5, r * .14)} opacity=".78" transform={`rotate(-12 ${x} ${y})`} />}
@@ -67,9 +67,84 @@ function PlanetVisual({ planet, selected, onSelect, x, y, center }: { planet: Pl
   );
 }
 
-function OrbitScene({ selectedId, setSelectedId, zoom, pan, setPan, playing, speed, onZoom }: { selectedId: string; setSelectedId: (id: string) => void; zoom: number; pan: { x: number; y: number }; setPan: (p: { x: number; y: number }) => void; playing: boolean; speed: number; onZoom: (amount: number) => void }) {
+function SurfaceFeatures({ planet }: { planet: Planet }) {
+  if (planet.id === 'sun') {
+    return <div className="viewer-sun-texture"><span className="sun-granule granule-a" /><span className="sun-granule granule-b" /><span className="sun-granule granule-c" /><span className="sun-granule granule-d" /></div>;
+  }
+  if (planet.id === 'earth') {
+    return <><span className="continent continent-a" /><span className="continent continent-b" /><span className="continent continent-c" /><span className="continent continent-d" /><span className="polar-cap" /></>;
+  }
+  if (planet.id === 'mercury') {
+    return <><span className="crater crater-a" /><span className="crater crater-b" /><span className="crater crater-c" /><span className="crater crater-d" /><span className="crater crater-e" /></>;
+  }
+  if (planet.id === 'mars') {
+    return <><span className="valley valley-a" /><span className="valley valley-b" /><span className="crater crater-a" /><span className="crater crater-c" /><span className="polar-cap" /></>;
+  }
+  if (planet.id === 'venus') {
+    return <><span className="cloud-band cloud-a" /><span className="cloud-band cloud-b" /><span className="cloud-band cloud-c" /><span className="cloud-swirl" /></>;
+  }
+  if (planet.id === 'jupiter') {
+    return <><span className="gas-band band-a" /><span className="gas-band band-b" /><span className="gas-band band-c" /><span className="great-spot" /></>;
+  }
+  if (planet.id === 'saturn') {
+    return <><span className="gas-band band-a" /><span className="gas-band band-b" /><span className="gas-band band-c" /></>;
+  }
+  return <><span className="gas-band band-a" /><span className="gas-band band-b" /><span className="gas-band band-c" /><span className="gas-band band-d" /></>;
+}
+
+function CelestialViewer({ planet, onClose }: { planet: Planet; onClose: () => void }) {
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState({ x: -10, y: -18 });
+  const dragStart = useRef<{ x: number; y: number; rotation: { x: number; y: number } } | null>(null);
+  const isSun = planet.id === 'sun';
+  const surface = surfaceColors[planet.id];
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+  const clampScale = (value: number) => setScale(Math.max(.72, Math.min(2.35, value)));
+  const resetObject = () => { setScale(1); setRotation({ x: -10, y: -18 }); };
+  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragStart.current = { x: event.clientX, y: event.clientY, rotation };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStart.current) return;
+    const nextX = dragStart.current.rotation.x - (event.clientY - dragStart.current.y) * .42;
+    setRotation({ x: Math.max(-72, Math.min(72, nextX)), y: dragStart.current.rotation.y + (event.clientX - dragStart.current.x) * .42 });
+  };
+  const stopDrag = () => { dragStart.current = null; };
+  return (
+    <div className="viewer-backdrop" role="presentation" onClick={onClose}>
+      <section className="viewer-modal" role="dialog" aria-modal="true" aria-labelledby="viewer-title" onClick={(event) => event.stopPropagation()}>
+        <div className="viewer-header">
+          <div><div className="viewer-kicker">{isSun ? 'Звезда · интерактивная корона' : `Планета · ${planet.latin}`}</div><h2 id="viewer-title">{planet.name}</h2><p>ИССЛЕДОВАТЕЛЬСКИЙ РЕЖИМ / ОБЪЕКТ 01</p></div>
+          <button className="viewer-close" type="button" onClick={onClose} aria-label="Закрыть режим изучения"><X size={18} /></button>
+        </div>
+        <div className={`viewer-stage ${isSun ? 'sun-stage' : ''}`} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={stopDrag} onPointerCancel={stopDrag} onPointerLeave={stopDrag} onWheel={(event) => { event.preventDefault(); clampScale(scale + (event.deltaY < 0 ? .08 : -.08)); }}>
+          <div className="viewer-instruction"><Move size={13} /> ПЕРЕТАЩИТЕ, ЧТОБЫ ПОВЕРНУТЬ / КОЛЕСО — МАСШТАБ</div>
+          <div className={`viewer-halo ${isSun ? 'active' : ''}`} />
+          {isSun && <div className="sun-flare-field">{Array.from({ length: 10 }).map((_, index) => <span key={index} className="sun-flare" style={{ '--flare-angle': `${index * 36}deg`, '--flare-delay': `${index * -.42}s` } as CSSProperties} />)}</div>}
+          <div className={`viewer-sphere ${isSun ? 'sun-viewer-sphere' : `viewer-${planet.id}`}`} style={{ transform: `perspective(900px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale(${scale})`, '--viewer-light': surface.light, '--viewer-mid': surface.mid, '--viewer-dark': surface.dark, '--viewer-glow': planet.glow } as CSSProperties}>
+            <div className="viewer-surface"><SurfaceFeatures planet={planet} /></div>
+          </div>
+          <div className="viewer-axis" />
+          <div className="viewer-scale-readout">МАСШТАБ <strong>{Math.round(scale * 100)}%</strong></div>
+        </div>
+        <div className="viewer-footer">
+          <div className="viewer-legend"><span className="legend-light" /> ОСВЕЩЕНИЕ ОТ СОЛНЦА <span className="legend-divider" /> <span className="legend-grid" /> РЕЛЬЕФ / АТМОСФЕРА</div>
+          <div className="viewer-actions"><button type="button" onClick={() => clampScale(scale - .12)} aria-label="Уменьшить объект">−</button><button type="button" onClick={resetObject}><RotateCcw size={13} /> Сбросить</button><button type="button" onClick={() => clampScale(scale + .12)} aria-label="Увеличить объект">+</button></div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OrbitScene({ selectedId, setSelectedId, zoom, pan, setPan, playing, speed, onZoom, onInspect }: { selectedId: string; setSelectedId: (id: string) => void; zoom: number; pan: { x: number; y: number }; setPan: (p: { x: number; y: number }) => void; playing: boolean; speed: number; onZoom: (amount: number) => void; onInspect: (id: string) => void }) {
   const dragStart = useRef<{ x: number; y: number; pan: { x: number; y: number } } | null>(null);
   const [simulationTime, setSimulationTime] = useState(0);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const center = { x: 330, y: 235 };
   useEffect(() => {
     if (!playing) return;
@@ -104,16 +179,20 @@ function OrbitScene({ selectedId, setSelectedId, zoom, pan, setPan, playing, spe
           {Array.from({ length: 42 }).map((_, i) => <circle key={i} className={`star ${i % 5 === 0 ? 'warm' : ''}`} cx={(i * 113) % 650 + 5} cy={(i * 71) % 455 + 5} r={i % 7 === 0 ? 1.3 : .7} opacity={.3 + (i % 4) * .15} />)}
           {planets.map((planet, i) => <ellipse key={planet.id} className={`orbit-guide ${i < 2 ? 'inner' : ''}`} cx={center.x} cy={center.y} rx={planet.orbit} ry={planet.orbit * .67} />)}
           <circle className="sun-ring" cx={center.x} cy={center.y} r="36" />
-          <g className={`planet-hit ${selectedId === 'sun' ? 'selected' : ''}`} role="button" tabIndex={0} aria-label="Выбрать Солнце" onClick={() => setSelectedId('sun')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedId('sun'); }}>
+           <g className={`planet-hit ${selectedId === 'sun' ? 'selected' : ''}`} role="button" tabIndex={0} aria-label="Открыть Солнце для изучения" onMouseEnter={() => setHoveredId('sun')} onMouseLeave={() => setHoveredId(null)} onFocus={() => setHoveredId('sun')} onBlur={() => setHoveredId(null)} onClick={() => { setSelectedId('sun'); onInspect('sun'); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedId('sun'); onInspect('sun'); } }}>
             <circle className="planet-halo" cx={center.x} cy={center.y} r="39" />
             <circle className="sun-corona" cx={center.x} cy={center.y} r={sun.radius + 8} />
             <circle className="sun-core" cx={center.x} cy={center.y} r={sun.radius} fill="url(#sphere-sun)" />
             <ellipse className="sun-specular" cx={center.x - 12} cy={center.y - 15} rx="8" ry="5" />
             <text className="planet-label" x={center.x} y={center.y + sun.radius + 19} textAnchor="middle">СОЛНЦЕ</text>
           </g>
-          {rendered.map(({ planet, x, y }) => <PlanetVisual key={planet.id} planet={planet} selected={selectedId === planet.id} onSelect={() => setSelectedId(planet.id)} x={x} y={y} center={center} />)}
+           {rendered.map(({ planet, x, y }) => <PlanetVisual key={planet.id} planet={planet} selected={selectedId === planet.id} onSelect={() => setSelectedId(planet.id)} onInspect={() => onInspect(planet.id)} onHover={() => setHoveredId(planet.id)} onHoverEnd={() => setHoveredId(null)} x={x} y={y} center={center} />)}
         </g>
       </svg>
+       {hoveredId && (() => {
+         const hovered = bodies.find((body) => body.id === hoveredId);
+         return hovered ? <div className="hover-info" role="status"><span className="hover-info-dot" style={{ background: hovered.gradient, boxShadow: `0 0 12px ${hovered.glow}` }} /><div><strong>{hovered.name}</strong><span>{hovered.description}</span><small>{hovered.diameter} · {hovered.orbitalPeriod} · клик — открыть сферу</small></div></div> : null;
+       })()}
       <div className="stage-tip">Размеры тел — относительный масштаб · расстояния — логарифмическая шкала</div>
       <div className="scale-readout"><span className="scale-dot" /> 3D СФЕРЫ <span className="scale-divider" /> ДВИЖЕНИЕ ×{speed}</div>
       <div className="zoom-controls" aria-label="Управление масштабом">
@@ -138,7 +217,8 @@ function Home() {
   const [day, setDay] = useState(12847);
   const [activeNav, setActiveNav] = useState('Обзор');
   const [showGuide, setShowGuide] = useState(false);
-  const selected = bodies.find((body) => body.id === selectedId) ?? planets[2];
+  const [viewerId, setViewerId] = useState<string | null>(null);
+  const viewerPlanet = viewerId ? bodies.find((body) => body.id === viewerId) : undefined;
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(() => setDay((value) => value + speed), 1000);
@@ -150,7 +230,7 @@ function Home() {
     setActiveNav(label);
     if (label === 'Обзор') window.scrollTo({ top: 0, behavior: 'smooth' });
     if (label === 'Объекты') document.querySelector('.navigator-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    if (label === 'Миссии') { setSelectedId('sun'); document.querySelector('.detail-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    if (label === 'Миссии') { setSelectedId('sun'); setViewerId('sun'); }
   };
   return (
     <div className="observatory-app">
@@ -191,7 +271,7 @@ function Home() {
                <div><div className="instrument-kicker">Карта навигации · 3D-визуализация</div><div className="instrument-title">Орбитальная плоскость</div></div>
                 <div className="instrument-status"><Zap size={12} /> СИМУЛЯЦИЯ АКТИВНА</div>
               </div>
-              <OrbitScene selectedId={selectedId} setSelectedId={setSelectedId} zoom={zoom} pan={pan} setPan={setPan} playing={playing} speed={speed} onZoom={(amount) => setZoomClamped(zoom + amount)} />
+               <OrbitScene selectedId={selectedId} setSelectedId={setSelectedId} zoom={zoom} pan={pan} setPan={setPan} playing={playing} speed={speed} onZoom={(amount) => setZoomClamped(zoom + amount)} onInspect={setViewerId} />
               <div className="instrument-foot">
                 <div className="timecode"><span>ЗЕМНОЙ КАЛЕНДАРЬ&nbsp;&nbsp;</span>{formatDay(day)}</div>
                 <div className="playback">
@@ -208,32 +288,12 @@ function Home() {
                 </div>
               </div>
             </section>
-            <div className="detail-column">
-              <section className="detail-card" data-testid={`panel-details-${selected.id}`}>
-                <div className="detail-top">
-                  <div><div className="object-kind">{selected.id === 'sun' ? 'Звезда · G2V' : `Планета · ${selected.id === 'earth' ? 'терра' : 'объект системы'}`}</div><h2 className="detail-title">{selected.name}<small>{selected.latin}</small></h2></div>
-                  <div className={`object-orb ${selected.id === 'sun' ? 'sun-orb' : 'planet-orb'}`} style={selected.id === 'sun' ? undefined : { '--planet-gradient': selected.gradient, '--planet-glow': selected.glow } as CSSProperties}>{selected.id === 'sun' ? <Sun size={26} /> : <span style={{ width: selected.radius * .8, height: selected.radius * .8, borderRadius: '50%', background: selected.gradient }} />}</div>
-                </div>
-                <p className="detail-description">{selected.description}</p>
-                <dl className="data-list">
-                  <div className="data-row"><dt>Масса</dt><dd>{selected.mass}</dd></div>
-                  <div className="data-row"><dt>Диаметр</dt><dd>{selected.diameter}</dd></div>
-                  <div className="data-row"><dt>Состав</dt><dd>{selected.composition}</dd></div>
-                  <div className="data-row"><dt>До Солнца</dt><dd>{selected.distanceSun}</dd></div>
-                  <div className="data-row"><dt>До Земли</dt><dd>{selected.distanceEarth}</dd></div>
-                  <div className="data-row"><dt>Орбитальный период</dt><dd>{selected.orbitalPeriod}</dd></div>
-                  <div className="data-row"><dt>Период вращения</dt><dd>{selected.rotationPeriod}</dd></div>
-                  <div className="data-row"><dt>Температура</dt><dd>{selected.temperature}</dd></div>
-                </dl>
-                <div className="detail-foot"><span className="selected-status">Выбрано для изучения</span><span>01 / 09</span></div>
-              </section>
-              <section className="navigator-card">
+             <section className="navigator-card">
                 <div className="navigator-heading"><div className="section-title">Быстрый выбор</div><div className="section-meta">9 объектов</div></div>
-                <div className="planet-nav">
-                  {bodies.map((body) => <button key={body.id} className={`planet-chip ${selectedId === body.id ? 'selected' : ''}`} style={{ '--planet-gradient': body.gradient, '--planet-glow': body.glow } as CSSProperties} data-testid={`button-select-${body.id}`} onClick={() => setSelectedId(body.id)}><span className="chip-dot" />{body.name}</button>)}
-                </div>
-              </section>
-            </div>
+                 <div className="planet-nav">
+                   {bodies.map((body) => <button key={body.id} className={`planet-chip ${selectedId === body.id ? 'selected' : ''}`} style={{ '--planet-gradient': body.gradient, '--planet-glow': body.glow } as CSSProperties} data-testid={`button-select-${body.id}`} onClick={() => { setSelectedId(body.id); setViewerId(body.id); }}><span className="chip-dot" />{body.name}</button>)}
+                 </div>
+             </section>
           </div>
           <div className="bottom-grid">
             <section className="fact-card highlight"><div className="fact-label"><Sparkles size={13} /> Знаете ли вы?</div><h3>Один год — восемь минут</h3><p>Свет Солнца путешествует до Земли 8 минут 20 секунд. А до Нептуна — больше четырёх часов.</p></section>
@@ -242,6 +302,7 @@ function Home() {
           </div>
         </main>
       </div>
+      {viewerPlanet && <CelestialViewer planet={viewerPlanet} onClose={() => setViewerId(null)} />}
     </div>
   );
 }

@@ -1,16 +1,14 @@
-## Hi there 👋
+## О себе
 
-<!--
-**afedor70-maker/afedor70-maker** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+Привет! Меня зовут Саша. Сейчас я на этапе активного обучения разработке: разбираюсь в основах, пишу код каждый день и постепенно превращаю теоретические знания в реальные проекты. Верю, что лучший способ научиться — делать руками и не бояться ошибаться.
 
-Here are some ideas to get you started:
+## Сейчас учусь
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+- 🧱 Основы программирования и алгоритмы
+- 🌐 Веб-технологии: HTML, CSS, JavaScript
+- 🛠️ Работа с Git и GitHub
+- 📚 Постоянно практикуюсь на маленьких задачах и пет-проектах
+
+## Контакты
+
+📧 **Email:** [afedor70@gmail.com](mailto:afedor70@gmail.com)

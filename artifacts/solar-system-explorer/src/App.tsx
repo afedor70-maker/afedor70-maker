@@ -4,7 +4,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useLocation, Route, Switch, Router as WouterRouter } from 'wouter';
-import { Activity, BookOpen, CircleHelp, Gauge, Info, Minus, Move, Pause, Play, Plus, RotateCcw, Sparkles, Telescope, X, Zap } from 'lucide-react';
+import { Activity, BookOpen, CircleHelp, Gauge, Info, Maximize2, Minus, Move, Pause, Play, Plus, RotateCcw, Sparkles, Telescope, X, Zap } from 'lucide-react';
 import NotFound from '@/pages/not-found';
 
 type Planet = {
@@ -112,7 +112,7 @@ function CelestialViewer({ planet, onClose }: { planet: Planet; onClose: () => v
   const moveDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragStart.current) return;
     const nextX = dragStart.current.rotation.x - (event.clientY - dragStart.current.y) * .42;
-    setRotation({ x: Math.max(-72, Math.min(72, nextX)), y: dragStart.current.rotation.y + (event.clientX - dragStart.current.x) * .42 });
+    setRotation({ x: nextX, y: dragStart.current.rotation.y + (event.clientX - dragStart.current.x) * .42 });
   };
   const stopDrag = () => { dragStart.current = null; };
   return (
@@ -122,16 +122,31 @@ function CelestialViewer({ planet, onClose }: { planet: Planet; onClose: () => v
           <div><div className="viewer-kicker">{isSun ? 'Звезда · интерактивная корона' : `Планета · ${planet.latin}`}</div><h2 id="viewer-title">{planet.name}</h2><p>ИССЛЕДОВАТЕЛЬСКИЙ РЕЖИМ / ОБЪЕКТ 01</p></div>
           <button className="viewer-close" type="button" onClick={onClose} aria-label="Закрыть режим изучения"><X size={18} /></button>
         </div>
-        <div className={`viewer-stage ${isSun ? 'sun-stage' : ''}`} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={stopDrag} onPointerCancel={stopDrag} onPointerLeave={stopDrag} onWheel={(event) => { event.preventDefault(); clampScale(scale + (event.deltaY < 0 ? .08 : -.08)); }}>
-          <div className="viewer-instruction"><Move size={13} /> ПЕРЕТАЩИТЕ, ЧТОБЫ ПОВЕРНУТЬ / КОЛЕСО — МАСШТАБ</div>
-          <div className={`viewer-halo ${isSun ? 'active' : ''}`} />
-          {isSun && <div className="sun-flare-field">{Array.from({ length: 10 }).map((_, index) => <span key={index} className="sun-flare" style={{ '--flare-angle': `${index * 36}deg`, '--flare-delay': `${index * -.42}s` } as CSSProperties} />)}</div>}
-          <div className={`viewer-sphere ${isSun ? 'sun-viewer-sphere' : `viewer-${planet.id}`}`} style={{ transform: `perspective(900px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale(${scale})`, '--viewer-light': surface.light, '--viewer-mid': surface.mid, '--viewer-dark': surface.dark, '--viewer-glow': planet.glow } as CSSProperties}>
-            <div className="viewer-surface"><SurfaceFeatures planet={planet} /></div>
-          </div>
-          <div className="viewer-axis" />
-          <div className="viewer-scale-readout">МАСШТАБ <strong>{Math.round(scale * 100)}%</strong></div>
-        </div>
+         <div className="viewer-study-grid">
+           <div className={`viewer-stage ${isSun ? 'sun-stage' : ''}`} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={stopDrag} onPointerCancel={stopDrag} onPointerLeave={stopDrag} onWheel={(event) => { event.preventDefault(); clampScale(scale + (event.deltaY < 0 ? .08 : -.08)); }}>
+             <div className="viewer-instruction"><Move size={13} /> ПЕРЕТАЩИТЕ, ЧТОБЫ ПОВЕРНУТЬ / КОЛЕСО — МАСШТАБ</div>
+             <div className={`viewer-halo ${isSun ? 'active' : ''}`} />
+             {isSun && <div className="sun-flare-field">{Array.from({ length: 10 }).map((_, index) => <span key={index} className="sun-flare" style={{ '--flare-angle': `${index * 36}deg`, '--flare-delay': `${index * -.42}s` } as CSSProperties} />)}</div>}
+             <div className={`viewer-sphere ${isSun ? 'sun-viewer-sphere' : `viewer-${planet.id}`}`} style={{ transform: `perspective(900px) rotateX(${rotation.x}deg) scale(${scale})`, '--viewer-light': surface.light, '--viewer-mid': surface.mid, '--viewer-dark': surface.dark, '--viewer-glow': planet.glow, '--map-rotation': `${rotation.y}deg` } as CSSProperties}>
+               <div className="viewer-surface"><div className="viewer-map"><SurfaceFeatures planet={planet} /></div></div>
+             </div>
+             <div className="viewer-axis" />
+             <div className="viewer-scale-readout">МАСШТАБ <strong>{Math.round(scale * 100)}%</strong></div>
+           </div>
+           <aside className="viewer-info-panel" aria-label={`Справка об объекте ${planet.name}`}>
+             <div className="viewer-info-eyebrow"><span className="info-live-dot" /> АКТИВНЫЙ ОБЪЕКТ / СПРАВКА</div>
+             <p className="viewer-info-description">{planet.description}</p>
+             <dl className="viewer-data-list">
+               <div><dt>Диаметр</dt><dd>{planet.diameter}</dd></div>
+               <div><dt>Состав</dt><dd>{planet.composition}</dd></div>
+               <div><dt>До Солнца</dt><dd>{planet.distanceSun}</dd></div>
+               <div><dt>Орбитальный период</dt><dd>{planet.orbitalPeriod}</dd></div>
+               <div><dt>Вращение</dt><dd>{planet.rotationPeriod}</dd></div>
+               <div><dt>Температура</dt><dd>{planet.temperature}</dd></div>
+             </dl>
+             <div className="viewer-info-note"><Maximize2 size={13} /> Справка синхронизирована с увеличенным объектом</div>
+           </aside>
+         </div>
         <div className="viewer-footer">
           <div className="viewer-legend"><span className="legend-light" /> ОСВЕЩЕНИЕ ОТ СОЛНЦА <span className="legend-divider" /> <span className="legend-grid" /> РЕЛЬЕФ / АТМОСФЕРА</div>
           <div className="viewer-actions"><button type="button" onClick={() => clampScale(scale - .12)} aria-label="Уменьшить объект">−</button><button type="button" onClick={resetObject}><RotateCcw size={13} /> Сбросить</button><button type="button" onClick={() => clampScale(scale + .12)} aria-label="Увеличить объект">+</button></div>

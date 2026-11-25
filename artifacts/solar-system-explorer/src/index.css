@@ -296,28 +296,51 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
 .viewer-header p { margin: 7px 0 0; color: rgba(177,191,219,.52); font: 8px var(--app-font-mono); letter-spacing: .07em; }
 .viewer-close { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(154,175,218,.2); border-radius: 9px; color: rgba(216,225,243,.75); background: rgba(255,255,255,.04); transition: .2s; }
 .viewer-close:hover { color: hsl(var(--primary)); border-color: rgba(255,211,128,.5); background: rgba(255,211,128,.09); transform: rotate(4deg); }
+.viewer-study-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 14px; align-items: stretch; padding: 14px; background: rgba(4, 8, 21, .32); }
 .viewer-stage { min-height: 440px; height: min(62vh, 570px); position: relative; display: grid; place-items: center; overflow: hidden; isolation: isolate; cursor: grab; touch-action: none; background: radial-gradient(circle at 50% 48%, rgba(81,124,190,.17), transparent 25%), radial-gradient(circle at 50% 50%, rgba(255,205,117,.05), transparent 48%), #080d20; }
 .viewer-stage:active { cursor: grabbing; }
 .viewer-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; background-image: radial-gradient(circle at 12% 24%, #fff 0 1px, transparent 1.5px), radial-gradient(circle at 79% 18%, #bfe1ff 0 1px, transparent 1.5px), radial-gradient(circle at 91% 75%, #fff1c7 0 1px, transparent 1.5px), radial-gradient(circle at 24% 82%, #fff 0 1px, transparent 1.5px); background-size: 173px 131px, 229px 211px, 293px 177px, 241px 193px; }
 .viewer-stage::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 35%, rgba(3,5,15,.42) 100%); }
 .viewer-instruction { position: absolute; z-index: 4; top: 17px; left: 20px; display: flex; align-items: center; gap: 7px; color: rgba(187,202,230,.58); font: 8px var(--app-font-mono); letter-spacing: .06em; }
 .viewer-instruction svg { color: hsl(var(--secondary)); }
+.viewer-info-panel { min-height: 440px; display: flex; flex-direction: column; padding: 19px 16px 15px; border: 1px solid rgba(154,175,218,.15); border-radius: 13px; background: linear-gradient(155deg, rgba(22,29,57,.78), rgba(8,12,27,.85)); }
+.viewer-info-eyebrow { display: flex; align-items: center; gap: 7px; color: hsl(var(--secondary)); font: 8px var(--app-font-mono); letter-spacing: .08em; }
+.info-live-dot { width: 6px; height: 6px; border-radius: 50%; background: hsl(var(--secondary)); box-shadow: 0 0 9px hsl(var(--secondary)); animation: pulse 1.8s infinite; }
+.viewer-info-description { margin: 17px 0 15px; color: rgba(221,229,245,.82); font: 11px/1.65 var(--app-font-sans); }
+.viewer-data-list { margin: 0; border-top: 1px solid rgba(154,175,218,.14); }
+.viewer-data-list > div { display: grid; gap: 5px; padding: 10px 0; border-bottom: 1px solid rgba(154,175,218,.1); }
+.viewer-data-list dt { color: rgba(177,191,219,.58); font: 8px var(--app-font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.viewer-data-list dd { margin: 0; color: rgba(239,243,252,.91); font: 10px/1.45 var(--app-font-mono); }
+.viewer-info-note { display: flex; align-items: flex-start; gap: 7px; margin-top: auto; padding-top: 14px; color: rgba(187,202,230,.52); font: 8px/1.45 var(--app-font-mono); }
+.viewer-info-note svg { flex: 0 0 auto; color: hsl(var(--primary)); }
 .viewer-halo { position: absolute; z-index: 0; width: min(56vw, 490px); aspect-ratio: 1; border: 1px solid rgba(130,177,239,.16); border-radius: 50%; box-shadow: 0 0 55px rgba(74,126,213,.08), inset 0 0 55px rgba(74,126,213,.08); transition: transform .25s, box-shadow .25s, border-color .25s; }
 .viewer-stage:hover .viewer-halo { transform: scale(1.04); border-color: rgba(140,201,255,.29); box-shadow: 0 0 75px rgba(74,126,213,.18), inset 0 0 65px rgba(74,126,213,.13); }
 .viewer-halo.active { border-color: rgba(255,197,89,.42); box-shadow: 0 0 80px rgba(255,170,54,.32), inset 0 0 70px rgba(255,170,54,.2); animation: halo-breathe 2.8s ease-in-out infinite; }
-.viewer-sphere { z-index: 2; width: min(42vw, 360px); min-width: 230px; aspect-ratio: 1; position: relative; border-radius: 50%; transform-style: preserve-3d; transition: box-shadow .25s; will-change: transform; box-shadow: inset -30px -24px 45px rgba(0,0,0,.5), inset 20px 16px 22px rgba(255,255,255,.18), 0 18px 44px rgba(0,0,0,.5), 0 0 35px var(--viewer-glow); }
+.viewer-sphere { z-index: 2; width: min(34vw, 330px); min-width: 230px; aspect-ratio: 1; position: relative; border-radius: 50%; transform-style: preserve-3d; transition: box-shadow .25s; will-change: transform; box-shadow: inset -30px -24px 45px rgba(0,0,0,.5), inset 20px 16px 22px rgba(255,255,255,.18), 0 18px 44px rgba(0,0,0,.5), 0 0 35px var(--viewer-glow); }
 .viewer-sphere:hover { box-shadow: inset -30px -24px 45px rgba(0,0,0,.46), inset 20px 16px 22px rgba(255,255,255,.2), 0 18px 44px rgba(0,0,0,.5), 0 0 58px var(--viewer-glow); }
 .viewer-surface { position: absolute; z-index: 1; inset: 0; overflow: hidden; border-radius: inherit; background: radial-gradient(circle at 28% 23%, var(--viewer-light), var(--viewer-mid) 48%, var(--viewer-dark) 100%); }
-.viewer-surface::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse at 29% 23%, rgba(255,255,255,.35), transparent 20%), radial-gradient(ellipse at 70% 76%, rgba(0,0,0,.48), transparent 57%); mix-blend-mode: screen; opacity: .7; }
+.viewer-map { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; transform: perspective(720px) rotateY(var(--map-rotation)); transform-style: preserve-3d; }
+.viewer-surface::before { content: ""; position: absolute; z-index: 4; inset: 0; border: 1px solid rgba(255,255,255,.28); border-radius: inherit; pointer-events: none; box-shadow: inset 12px 10px 20px rgba(255,255,255,.14), inset -28px -25px 38px rgba(0,0,0,.64), inset -5px 0 12px rgba(30,65,116,.25); }
+.viewer-surface::after { content: ""; position: absolute; z-index: 5; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse at 27% 21%, rgba(255,255,255,.36), transparent 17%), radial-gradient(ellipse at 66% 68%, transparent 32%, rgba(0,0,0,.24) 68%, rgba(0,0,0,.58) 100%); opacity: .88; }
 .viewer-earth .viewer-surface { background: radial-gradient(circle at 27% 22%, #b8f4e9 0 10%, transparent 23%), linear-gradient(145deg, #6fc9df, #2966a8 57%, #111e51); }
+.viewer-earth .viewer-map { background: radial-gradient(circle at 27% 22%, #b8f4e9 0 10%, transparent 23%), linear-gradient(145deg, #6fc9df, #2966a8 57%, #111e51); }
 .viewer-mars .viewer-surface { background: radial-gradient(circle at 28% 23%, #f5ba86, #b95648 48%, #592a35 100%); }
+.viewer-mars .viewer-map { background: radial-gradient(circle at 28% 23%, #f5ba86, #b95648 48%, #592a35 100%); }
 .viewer-mercury .viewer-surface { background: radial-gradient(circle at 27% 22%, #e7ded0, #9d9188 48%, #34333b 100%); }
+.viewer-mercury .viewer-map { background: radial-gradient(circle at 27% 22%, #e7ded0, #9d9188 48%, #34333b 100%); }
 .viewer-venus .viewer-surface { background: radial-gradient(circle at 29% 23%, #ffe8b6, #d29054 52%, #763b39 100%); }
-.viewer-jupiter .viewer-surface, .viewer-saturn .viewer-surface { background: repeating-linear-gradient(174deg, #e8bc8a 0 14px, #92594b 15px 25px, #f0d5aa 26px 38px, #ab745a 39px 49px); }
+.viewer-venus .viewer-map { background: radial-gradient(circle at 29% 23%, #ffe8b6, #d29054 52%, #763b39 100%); }
+.viewer-jupiter .viewer-surface, .viewer-saturn .viewer-surface { background: radial-gradient(circle at 29% 23%, rgba(255,255,255,.2), transparent 40%), repeating-linear-gradient(174deg, #e8bc8a 0 14px, #92594b 15px 25px, #f0d5aa 26px 38px, #ab745a 39px 49px); }
+.viewer-jupiter .viewer-map, .viewer-saturn .viewer-map { background: repeating-linear-gradient(174deg, #e8bc8a 0 14px, #92594b 15px 25px, #f0d5aa 26px 38px, #ab745a 39px 49px); }
 .viewer-uranus .viewer-surface { background: repeating-linear-gradient(174deg, #c7f7ed 0 20px, #6fbcc5 22px 31px, #4a9daa 34px 49px); }
+.viewer-uranus .viewer-map { background: repeating-linear-gradient(174deg, #c7f7ed 0 20px, #6fbcc5 22px 31px, #4a9daa 34px 49px); }
 .viewer-neptune .viewer-surface { background: repeating-linear-gradient(174deg, #8bb4ed 0 15px, #3b5eb2 16px 34px, #273679 36px 47px); }
+.viewer-neptune .viewer-map { background: repeating-linear-gradient(174deg, #8bb4ed 0 15px, #3b5eb2 16px 34px, #273679 36px 47px); }
 .viewer-sun-texture, .sun-granule, .continent, .crater, .valley, .cloud-band, .cloud-swirl, .gas-band, .great-spot, .polar-cap { position: absolute; display: block; }
 .viewer-sun-texture { inset: 0; border-radius: inherit; overflow: hidden; background: repeating-radial-gradient(ellipse at 40% 35%, rgba(255,244,172,.3) 0 4px, transparent 5px 12px), repeating-linear-gradient(12deg, transparent 0 15px, rgba(184,61,34,.18) 17px 21px, transparent 23px 36px); mix-blend-mode: overlay; }
+.sun-viewer-sphere .viewer-surface { background: radial-gradient(circle at 33% 29%, #fff6d1, #ffd265 36%, #ff8e2d 69%, #ae3428 100%); box-shadow: 0 0 42px rgba(255,171,47,.35), inset 0 0 34px rgba(255,232,157,.3); }
+.sun-viewer-sphere .viewer-surface::before { border-color: rgba(255,240,184,.64); box-shadow: inset 12px 10px 24px rgba(255,248,202,.3), inset -20px -22px 38px rgba(131,29,28,.38); }
+.sun-viewer-sphere .viewer-surface::after { background: radial-gradient(ellipse at 29% 24%, rgba(255,255,232,.56), transparent 22%), radial-gradient(ellipse at 67% 70%, transparent 31%, rgba(122,33,22,.31) 76%, rgba(84,19,18,.5) 100%); opacity: .84; }
 .sun-granule { width: 15%; height: 8%; border-radius: 50%; background: rgba(255,240,157,.45); filter: blur(4px); }
 .granule-a { left: 15%; top: 34%; }.granule-b { left: 52%; top: 21%; transform: rotate(-20deg); }.granule-c { left: 63%; top: 65%; }.granule-d { left: 27%; top: 73%; }
 .continent { z-index: 1; background: linear-gradient(135deg, #8ac278, #397c61); filter: drop-shadow(2px 2px 2px rgba(8,34,42,.28)); }
@@ -400,7 +423,13 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
   .viewer-modal { border-radius: 16px; }
   .viewer-header { padding: 16px 15px 13px; }
   .viewer-header h2 { font-size: 23px; }
+  .viewer-study-grid { grid-template-columns: 1fr; gap: 10px; padding: 9px; }
   .viewer-stage { min-height: 355px; height: 58vh; }
+  .viewer-info-panel { min-height: 0; padding: 15px; }
+  .viewer-info-description { margin: 12px 0; }
+  .viewer-data-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 13px; }
+  .viewer-data-list > div { padding: 8px 0; }
+  .viewer-info-note { margin-top: 10px; }
   .viewer-instruction { top: 13px; left: 14px; right: 14px; font-size: 7px; }
   .viewer-sphere { width: 230px; min-width: 230px; }
   .viewer-halo { width: 300px; }
